@@ -3,8 +3,8 @@
 #include <cstdio>
 
 #define I2C_PORT i2c0
-#define I2C_SDA 0
-#define I2C_SCL 1
+#define I2C_SDA 16
+#define I2C_SCL 17
 
 AMG8833 thermal_cam(I2C_PORT);
 
@@ -30,14 +30,22 @@ int main() {
 
     printf("Thermal camera initialized");
 
-    uint16_t data;
+    float data;
+    float pixels[64];
 
     while (true) {
         if (!thermal_cam.read_thermistor(&data)) {
             printf("Error: Thermal camera failed to read thermisotr\n");
         }
+        printf("Thermistor: %f\n", data);
 
-        printf("Thermistor: %u\n", data);
+        if (!thermal_cam.read_pixels(pixels)) {
+            printf("Error: Failed to read pixels.\n");
+        }
+        for (int i = 0; i < 64; i++) {
+            printf("Pixel %2d: %.2f°C\n", i, pixels[i]);
+        }
+
         sleep_ms(50);
     }
 

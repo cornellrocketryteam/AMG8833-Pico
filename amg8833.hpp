@@ -7,6 +7,10 @@
 #define AMG8833_ADDR (0x69)
 #define AMG8833_BYTE_TIMEOUT_US (1500)
 
+#define AMG8833_PIXEL_NUM 64
+#define AMG8833_PIXEL_TEMP_CONVERSION .25
+#define AMG8833_THERMISTOR_CONVERSION .0625
+
 enum {
     AMG88xx_PCTL = 0x00,
     AMG88xx_RST = 0x01,
@@ -64,7 +68,12 @@ public:
      * @param data The array to store the
      * thermistor data
      */
-    bool read_thermistor(uint16_t *data);
+    bool read_thermistor(float *data);
+
+    /**
+     * TODO: write spec
+     */
+    bool read_pixels(float *pixel_array);
 
 private:
     /**
@@ -77,9 +86,11 @@ private:
     /**
      * Read the value from a specified register.
      * @param reg The register to read from
-     * @param val The array to store the read value
+     * @param buf The array to store the read value
+     * @param len The number of bytes beimg read
      */
-    bool read_register(const uint8_t reg, uint8_t *val);
+    bool read_register(const uint8_t reg, uint8_t *buf, uint8_t len);
+
     /**
      * The I2C bus.
      */
