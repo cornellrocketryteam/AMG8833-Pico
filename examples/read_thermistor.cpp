@@ -32,7 +32,7 @@ int main() {
 
     float data;
     float pixels[64];
-    RGB colors[64];
+    RGB332 colors[64];
 
     while (true) {
         if (!thermal_cam.read_thermistor(&data)) {
@@ -47,7 +47,7 @@ int main() {
             printf("Pixel %2d: %.2f°C\n", i, pixels[i]);
         }
 
-        thermal_cam.convert_to_heatmap(pixels, colors, 0, 200);
+        thermal_cam.convert_to_heatmap_RGB332(pixels, colors);
         for (int i = 0; i < 64; i++) {
             char shade = pixels[i] > 30.0 ? '#' :
                          pixels[i] > 25.0 ? '*' :

@@ -1,5 +1,8 @@
 #include "amg8833.hpp"
 #include <cstdio>
+#include <cmath>
+#include <algorithm>
+
 
 AMG8833::AMG8833(i2c_inst_t *i2c_type) {
     i2c = i2c_type;
@@ -76,9 +79,9 @@ bool AMG8833::read_pixels(float *pixel_array){
     return true;
 }
 
-void AMG8833::convert_to_heatmap(float *temps, RGB *colors, float min_temp, float max_temp) {
+void AMG8833::convert_to_heatmap(float *temps, RGB *colors) {
     for (int i = 0; i < AMG8833_PIXEL_NUM; i++) {
-        float t = (temps[i] - min_temp) / (max_temp - min_temp);
+        float t = (temps[i] - MIN_TEMP) / (MAX_TEMP - MIN_TEMP);
         t = t < 0 ? 0 : t > 1 ? 1 : t; // Clamp to [0, 1]
 
         RGB color;
@@ -103,6 +106,25 @@ void AMG8833::convert_to_heatmap(float *temps, RGB *colors, float min_temp, floa
         }
 
         colors[i] = color;
+    }
+}
+
+void AMG8833::convert_to_heatmap_RGB332(float *temps, RGB332 *colors){
+    for (int i = 0; i < AMG8833_PIXEL_NUM; i++) {
+        float normalized = (temps[i] - MIN_TEMP) / (MAX_TEMP - MIN_TEMP);
+        normalized = std::max(0.0f, std::min(1.0f, normalized)); // Clamp 0–1
+
+        // Map normalized value to RGB heatmap colors (simple gradient: blue → red)
+        uint8_t r = (uint8_t)(255 * normalized);
+        uint8_t g = (uint8_t)(255 * (1.0f - fabsf(normalized - 0.5f) * 2)); // peak at middle
+        uint8_t b = (uint8_t)(255 * (1.0f - normalized));
+
+        // Pack into RGB332
+        uint8_t r3 = r >> 5;        // top 3 bits of red
+        uint8_t g3 = g >> 5;        // top 3 bits of green
+        uint8_t b2 = b >> 6;        // top 2 bits of blue
+
+        colors[i] = (r3 << 5) | (g3 << 2) | b2;
     }
 }
 

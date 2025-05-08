@@ -11,6 +11,9 @@
 #define AMG8833_PIXEL_TEMP_CONVERSION .25
 #define AMG8833_THERMISTOR_CONVERSION .0625
 
+#define MIN_TEMP 0
+#define MAX_TEMP 55
+
 enum {
     AMG88xx_PCTL = 0x00,
     AMG88xx_RST = 0x01,
@@ -53,6 +56,8 @@ enum {
     uint8_t b;
 };
 
+typedef uint8_t RGB332;
+
 
 /**
  * Representation of the AMG8833 sensor.
@@ -66,7 +71,7 @@ public:
     AMG8833(i2c_inst_t *i2c_type);
 
     /**
-     * TODO: write spec
+     * Configures the thermal camera with initial settings.
      */
     bool begin();
 
@@ -78,14 +83,36 @@ public:
     bool read_thermistor(float *data);
 
     /**
-     * TODO: write spec
+     * Reads temperature values from all 64 pixels
+     * and stores them in an array as degrees Celsius.
+     * @param pixel_array The array to store the pixel
+     * temperature values.
      */
     bool read_pixels(float *pixel_array);
 
     /**
-     * TODO: write spec
+     * Takes an array of temperature values and converts
+     * each value to an RGB value, such that a heatmap is
+     * produced.
+     * @param temps The array of temperatures to be converted
+     * @param colors The array to store RGB values
+     * 
      */
-    static void convert_to_heatmap(float *temps, RGB *colors, float min_temp, float max_temp);
+    static void convert_to_heatmap(float *temps, RGB *colors);
+
+    /**
+     * Takes an array of temperature values and converts
+     * each value to an RGB332 value, such that a heatmap is
+     * produced. Saves memory by utilizing 8-bit RGB332 codes,
+     * where a full RGB combination is stored as only 8-bits.
+     * Bits are given as follows: RRRGGGBB
+     * Has less color range than convert_to_heatmap.
+     * @param temps The array of temperatures to be converted
+     * @param colors The array to store RGB332 values
+     * 
+     */
+    static void convert_to_heatmap_RGB332(float *temps, RGB332 *colors);
+    
 
 private:
     /**
