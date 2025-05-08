@@ -47,6 +47,13 @@ enum {
   
   enum int_modes { AMG88xx_DIFFERENCE = 0x00, AMG88xx_ABSOLUTE_VALUE = 0x01 };
 
+  struct RGB {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+};
+
+
 /**
  * Representation of the AMG8833 sensor.
  */
@@ -74,6 +81,11 @@ public:
      * TODO: write spec
      */
     bool read_pixels(float *pixel_array);
+
+    /**
+     * TODO: write spec
+     */
+    static void convert_to_heatmap(float *temps, RGB *colors, float min_temp, float max_temp);
 
 private:
     /**

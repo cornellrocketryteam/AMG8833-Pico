@@ -75,3 +75,34 @@ bool AMG8833::read_pixels(float *pixel_array){
 
     return true;
 }
+
+void AMG8833::convert_to_heatmap(float *temps, RGB *colors, float min_temp, float max_temp) {
+    for (int i = 0; i < AMG8833_PIXEL_NUM; i++) {
+        float t = (temps[i] - min_temp) / (max_temp - min_temp);
+        t = t < 0 ? 0 : t > 1 ? 1 : t; // Clamp to [0, 1]
+
+        RGB color;
+
+        // Blue → Cyan → Green → Yellow → Red
+        if (t < 0.25f) { // Blue to Cyan
+            color.r = 0;
+            color.g = (uint8_t)(255 * (t / 0.25f));
+            color.b = 255;
+        } else if (t < 0.5f) { // Cyan to Green
+            color.r = 0;
+            color.g = 255;
+            color.b = (uint8_t)(255 * (1 - (t - 0.25f) / 0.25f));
+        } else if (t < 0.75f) { // Green to Yellow
+            color.r = (uint8_t)(255 * ((t - 0.5f) / 0.25f));
+            color.g = 255;
+            color.b = 0;
+        } else { // Yellow to Red
+            color.r = 255;
+            color.g = (uint8_t)(255 * (1 - (t - 0.75f) / 0.25f));
+            color.b = 0;
+        }
+
+        colors[i] = color;
+    }
+}
+
