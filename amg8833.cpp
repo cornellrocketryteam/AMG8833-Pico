@@ -45,6 +45,7 @@ bool AMG8833::begin(){
         return false;
     }
 
+    // Wait for settings to write properly
     sleep_ms(100);
 
     return true;
@@ -56,8 +57,11 @@ bool AMG8833::read_thermistor(float *data){
 
     if (!read_register(AMG88xx_TTHL, &low, 2)) return false;
     if (!read_register(AMG88xx_TTHH, &high, 2)) return false;
+
+    // Combine two byte readings into one value
     raw = ((uint16_t)high << 8) | low;
 
+    // Convert raw reading to temperature reading
     *data = (float)(raw * AMG8833_THERMISTOR_CONVERSION);
     
     return true;
@@ -69,10 +73,12 @@ bool AMG8833::read_pixels(float *pixel_array){
     uint16_t raw;
     if (!read_register(AMG88xx_PIXEL_OFFSET, raw_array, byte_num)) return false;
 
+    // Read temperature values from all 64 pixels
     for (int i = 0; i < AMG8833_PIXEL_NUM; i++) {
         uint8_t pos = i << 1;
         raw = ((uint16_t)raw_array[pos + 1] << 8) | ((uint16_t)raw_array[pos]);
-    
+        
+        // Convert raw readings to temperature values
         pixel_array[i] = (float)raw * AMG8833_PIXEL_TEMP_CONVERSION;
     }
 
@@ -84,6 +90,7 @@ void AMG8833::convert_to_heatmap(float *temps, RGB *colors) {
         float t = (temps[i] - MIN_TEMP) / (MAX_TEMP - MIN_TEMP);
         t = t < 0 ? 0 : t > 1 ? 1 : t; // Clamp to [0, 1]
 
+        // Generate an RGB value for each temperature reading
         RGB color;
 
         // Blue → Cyan → Green → Yellow → Red
@@ -113,6 +120,8 @@ void AMG8833::convert_to_heatmap_RGB332(float *temps, RGB332 *colors){
     for (int i = 0; i < AMG8833_PIXEL_NUM; i++) {
         float normalized = (temps[i] - MIN_TEMP) / (MAX_TEMP - MIN_TEMP);
         normalized = std::max(0.0f, std::min(1.0f, normalized)); // Clamp 0–1
+
+        // Generate an RGB332 value for each temperature reading
 
         // Map normalized value to RGB heatmap colors (simple gradient: blue → red)
         uint8_t r = (uint8_t)(255 * normalized);
